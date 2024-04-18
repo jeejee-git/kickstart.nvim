@@ -5,7 +5,7 @@ vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
 -- Set to true if you have a Nerd Font installed and selected in the terminal
-vim.g.have_nerd_font = false
+vim.g.have_nerd_font = true
 
 -- [[ Setting options ]]
 -- See `:help vim.opt`
@@ -89,6 +89,32 @@ vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left wind
 vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
+--
+--  Use ALT+<hjkl> to move windows around
+vim.keymap.set("n", "<A-h>", "<C-w>H", { desc = "Move pane to left" })
+vim.keymap.set("n", "<A-l>", "<C-w>L", { desc = "Move pane to right" })
+vim.keymap.set("n", "<A-j>", "<C-w>J", { desc = "Move pane to down" })
+vim.keymap.set("n", "<A-k>", "<C-w>K", { desc = "Move pane to up" })
+--
+--  Use CTRL+<up/down/left/right> to resize windows
+vim.keymap.set("n", "<C-Up>", ":resize -2<CR>", { desc = "Increment pane width" })
+vim.keymap.set("n", "<C-Down>", ":resize +2<CR>", { desc = "Decrement pane width" })
+vim.keymap.set("n", "<C-Left>", ":vertical resize -2<CR>", { desc = "Increment pane height" })
+vim.keymap.set("n", "<C-Right>", ":vertical resize +2<CR>", { desc = "Decrement pane height" })
+
+-- Navigate buffers
+vim.keymap.set("n", "<S-l>", ":bnext<CR>", { desc = "Go to next buffer" })
+vim.keymap.set("n", "<S-h>", ":bprevious<CR>", { desc = "Go to previous buffer" })
+
+-- Stay in indent mode
+vim.keymap.set("v", "<", "<gv", { desc = "Indent left" })
+vim.keymap.set("v", ">", ">gv", { desc = "Indent right" })
+
+-- Move lines up and down
+vim.keymap.set("n", "<A-j>", ":m .+1<CR>==", { desc = "Move text up" })
+vim.keymap.set("n", "<A-k>", ":m .-2<CR>==", { desc = "Move text down" })
+vim.keymap.set("v", "<A-j>", ":m '>+1<CR>gv-gv", { desc = "Move text up" })
+vim.keymap.set("v", "<A-k>", ":m '<-2<CR>gv-gv", { desc = "Move text down" })
 
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
@@ -102,6 +128,19 @@ vim.api.nvim_create_autocmd('TextYankPost', {
   callback = function()
     vim.highlight.on_yank()
   end,
+})
+
+-- Stop auto-comment prefixing newlines
+vim.api.nvim_create_autocmd("BufEnter", {
+	callback = function()
+		vim.opt.formatoptions = vim.opt.formatoptions - { "c", "r", "o" }
+	end,
+})
+
+-- Markdown syntax conceal
+vim.api.nvim_create_autocmd({"BufEnter", "BufWinEnter"}, {
+  pattern = {"*.md"},
+  command = "set conceallevel=2"
 })
 
 -- [[ Install `lazy.nvim` plugin manager ]]
@@ -477,7 +516,7 @@ require('lazy').setup({
                 callSnippet = 'Replace',
               },
               -- You can toggle below to ignore Lua_LS's noisy `missing-fields` warnings
-              -- diagnostics = { disable = { 'missing-fields' } },
+              diagnostics = { disable = { 'missing-fields' } },
             },
           },
         },
@@ -601,6 +640,48 @@ require('lazy').setup({
         },
         completion = { completeopt = 'menu,menuone,noinsert' },
 
+        formatting = {
+          format = function(_, vim_item)
+            local kind_icons = {
+              Text = "",
+              Method = "󰆧",
+              Function = "󰊕",
+              Constructor = "",
+              Field = "󰇽",
+              Variable = "󰂡",
+              Class = "󰠱",
+              Interface = "",
+              Module = "",
+              Property = "󰜢",
+              Unit = "",
+              Value = "󰎠",
+              Enum = "",
+              Keyword = "󰌋",
+              Snippet = "",
+              Color = "󰏘",
+              File = "󰈙",
+              Reference = "",
+              Folder = "󰉋",
+              EnumMember = "",
+              Constant = "󰏿",
+              Struct = "",
+              Event = "",
+              Operator = "󰆕",
+              TypeParameter = "󰅲",
+            }
+            -- Use kind_icons for representing the kind with an icon
+            local icon = kind_icons[vim_item.kind] or ''
+
+            -- Concatenate the icon and kind name
+            vim_item.kind = string.format("%s %s", icon, vim_item.kind)
+
+            -- set description to an empty string
+            vim_item.menu = ''
+
+            return vim_item
+          end,
+        },
+
         -- For an understanding of why these mappings were
         -- chosen, you will need to read `:help ins-completion`
         --
@@ -618,12 +699,15 @@ require('lazy').setup({
           -- Accept ([y]es) the completion.
           --  This will auto-import if your LSP supports it.
           --  This will expand snippets if the LSP sent a snippet.
-          ['<C-y>'] = cmp.mapping.confirm { select = true },
+          ['<CR>'] = cmp.mapping.confirm { select = true },
 
           -- Manually trigger a completion from nvim-cmp.
           --  Generally you don't need this, because nvim-cmp will display
           --  completions whenever it has completion options available.
           ['<C-Space>'] = cmp.mapping.complete {},
+
+          -- Close the completion menu
+          ['<C-e>'] = cmp.mapping.abort(),
 
           -- Think of <c-l> as moving to the right of your snippet expansion.
           --  So if you have a snippet that's like:
@@ -752,6 +836,8 @@ require('lazy').setup({
   require 'kickstart.plugins.indent_line',
   require 'kickstart.plugins.autopairs',
   require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
+  require 'kickstart.plugins.img-clip', -- paste image from clipboard
+  require 'kickstart.plugins.markdown-preview', -- preview markdown
 }, {
   ui = {
     -- If you are using a Nerd Font: set icons to an empty table which will use the
