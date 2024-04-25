@@ -10,8 +10,8 @@ return {
 		filetypes = {
 			markdown = {
 				url_encode_path = true, ---@type boolean
-				template = "![$CURSOR]($FILE_PATH)", ---@type string
-				prompt_for_file_name = false,
+				template = "![$FILE_NAME]($FILE_PATH)$CURSOR", ---@type string
+				prompt_for_file_name = true,
 			},
 		},
 	},
