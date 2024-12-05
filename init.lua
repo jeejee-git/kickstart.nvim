@@ -138,7 +138,7 @@ vim.keymap.set("n", "<S-h>", function()
 end, { desc = "Go to previous buffer" })
 
 -- Write/Delete buffer
-vim.keymap.set("n", "<C-w>", ":w<CR>", { desc = "Save current buffer" })
+vim.keymap.set("n", "<C-w>", ":close<CR>", { desc = "Close current window" })
 vim.keymap.set("n", "<C-c>", ":bdelete<CR>", { desc = "Delete current buffer" })
 
 -- Close nvim
@@ -938,9 +938,10 @@ require("lazy").setup({
 	require("kickstart.plugins.indent_line"),
 	require("kickstart.plugins.autopairs"),
 	require("kickstart.plugins.oil-nvim"),
-	require("kickstart.plugins.auto-session"),
+	require("kickstart.plugins.markdown-preview"),
 	require("kickstart.plugins.gitsigns"), -- adds gitsigns recommend keymaps
 	require("kickstart.plugins.img-clip"), -- <leader>+p to paste image from clipboard
+	require("kickstart.plugins.obsession"), -- session manager
 
 	-- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
 	--    This is the easiest way to modularize your config.
